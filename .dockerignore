@@ -46,6 +46,7 @@ target/
 *.zip
 *.tar.gz
 *.rar
+!build-artifacts/loader-dist.tar.gz
 hs_err_pid*
 
 # Node.js

@@ -7,23 +7,19 @@ COPY hugegraph-loader/pom.xml hugegraph-loader/
 COPY hugegraph-client/pom.xml hugegraph-client/
 COPY hugegraph-loader-custom/pom.xml hugegraph-loader-custom/
 RUN mvn dependency:go-offline -pl hugegraph-client,hugegraph-loader,hugegraph-loader-custom -am
-COPY hugegraph-loader-custom/pom.xml hugegraph-loader-custom/
-RUN mvn dependency:go-offline -pl hugegraph-client,hugegraph-loader,hugegraph-loader-custom -am
 
 COPY . .
-RUN if [ -d "hugegraph-loader" ] && [ -f "hugegraph-loader/pom.xml" ]; then \
+RUN if [ -f build-artifacts/loader-dist.tar.gz ]; then \
+        echo "Using pre-built loader from build-artifacts/"; \
+        mkdir -p loader-output && tar xzf build-artifacts/loader-dist.tar.gz -C loader-output; \
+    else \
         echo "Building HugeGraph Loader from source..."; \
         mvn clean install -pl hugegraph-client,hugegraph-loader,hugegraph-loader-custom -am \
             -Dmaven.javadoc.skip=true \
             -DskipTests \
             -Dcheckstyle.skip=true \
             -Deditorconfig.skip=true && \
-        echo "HugeGraph Loader built successfully"; \
-        ls -la hugegraph-loader/apache-hugegraph-loader-incubating-1.5.0/bin/; \
-    else \
-        echo "ERROR: hugegraph-loader source not found!"; \
-        echo "Available directories:"; ls -la; \
-        exit 1; \
+        mkdir -p loader-output && cp -r hugegraph-loader/apache-hugegraph-loader-incubating-1.5.0/. loader-output/; \
     fi
 
 FROM python:3.11-slim
@@ -46,7 +42,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY --from=hugegraph-builder /build/hugegraph-loader/apache-hugegraph-loader-incubating-1.5.0 /app/hugegraph-loader
+COPY --from=hugegraph-builder /build/loader-output /app/hugegraph-loader
 
 COPY app/ ./app/
 COPY config.yaml .

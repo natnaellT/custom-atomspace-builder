@@ -3,7 +3,7 @@ COMPOSE_FILE=docker-compose.yml
 COMPOSE_FILE_DEV=docker-compose.dev.yml
 SERVICE=atomspace-api
 SERVICE_DEV=atomspace-api-dev
-
+LOADER_ARTIFACT_DIR=hugegraph-loader/apache-hugegraph-loader-incubating-1.5.0
 
 # Default target
 .DEFAULT_GOAL := help
@@ -12,6 +12,7 @@ SERVICE_DEV=atomspace-api-dev
 help:
 	@echo ""
 	@echo "Available commands:"
+	@echo "  make build-loader-artifact - Build loader from source and pack into build-artifacts/loader-dist.tar.gz"
 	@echo "  make build       - Build all services using docker compose"
 	@echo "  make build-dev   - Build all services using docker compose in development mode"
 	@echo "  make build-nc    - Build all services without using cache"
@@ -32,6 +33,14 @@ help:
 	@echo "  make clean-dev   - Stop all containers and remove volumes in development mode"
 	@echo "  make help        - Show this help message"
 	@echo ""
+
+# Build HugeGraph Loader and pack into build-artifacts/ for fast Docker builds
+build-loader-artifact:
+	@mkdir -p build-artifacts
+	mvn clean install -pl hugegraph-client,hugegraph-loader,hugegraph-loader-custom -am \
+		-Dmaven.javadoc.skip=true -DskipTests -Dcheckstyle.skip=true -Deditorconfig.skip=true
+	@cd $(LOADER_ARTIFACT_DIR) && tar czf ../../build-artifacts/loader-dist.tar.gz .
+	@echo "Created build-artifacts/loader-dist.tar.gz - commit it for fast Docker builds"
 
 # Build all services (with cache)
 build:
