@@ -552,15 +552,20 @@
             <version>${kafka.testcontainer.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.hugegraph</groupId>
-            <artifactId>hugegraph-loader-custom</artifactId>
-            <version>${revision}</version>
-            <scope>runtime</scope>
-        </dependency>
     </dependencies>
 
     <profiles>
+        <profile>
+            <id>with-custom</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.hugegraph</groupId>
+                    <artifactId>hugegraph-loader-custom</artifactId>
+                    <version>${revision}</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
         <profile>
             <id>unit</id>
             <activation>

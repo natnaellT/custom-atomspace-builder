@@ -34,10 +34,15 @@ help:
 	@echo "  make help        - Show this help message"
 	@echo ""
 
-# Build HugeGraph Loader and pack into build-artifacts/ for fast Docker builds
+# Build HugeGraph Loader and pack into build-artifacts/ for fast Docker builds.
+# Breaks reactor cycle: build loader (no custom), then loader-custom, then loader with custom.
 build-loader-artifact:
 	@mkdir -p build-artifacts
-	mvn clean install -pl hugegraph-client,hugegraph-loader,hugegraph-loader-custom -am \
+	mvn clean install -pl hugegraph-client,hugegraph-loader \
+		-Dmaven.javadoc.skip=true -DskipTests -Dcheckstyle.skip=true -Deditorconfig.skip=true
+	mvn install -pl hugegraph-loader-custom \
+		-Dmaven.javadoc.skip=true -DskipTests -Dcheckstyle.skip=true -Deditorconfig.skip=true
+	mvn package -pl hugegraph-loader -Pwith-custom \
 		-Dmaven.javadoc.skip=true -DskipTests -Dcheckstyle.skip=true -Deditorconfig.skip=true
 	@cd $(LOADER_ARTIFACT_DIR) && tar czf ../../build-artifacts/loader-dist.tar.gz .
 	@echo "Created build-artifacts/loader-dist.tar.gz - commit it for fast Docker builds"

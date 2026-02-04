@@ -6,7 +6,7 @@ COPY pom.xml .
 COPY hugegraph-loader/pom.xml hugegraph-loader/
 COPY hugegraph-client/pom.xml hugegraph-client/
 COPY hugegraph-loader-custom/pom.xml hugegraph-loader-custom/
-RUN mvn dependency:go-offline -pl hugegraph-client,hugegraph-loader,hugegraph-loader-custom -am
+RUN mvn dependency:go-offline -pl hugegraph-client,hugegraph-loader -am
 
 COPY . .
 RUN if [ -f build-artifacts/loader-dist.tar.gz ]; then \
@@ -14,11 +14,12 @@ RUN if [ -f build-artifacts/loader-dist.tar.gz ]; then \
         mkdir -p loader-output && tar xzf build-artifacts/loader-dist.tar.gz -C loader-output; \
     else \
         echo "Building HugeGraph Loader from source..."; \
-        mvn clean install -pl hugegraph-client,hugegraph-loader,hugegraph-loader-custom -am \
-            -Dmaven.javadoc.skip=true \
-            -DskipTests \
-            -Dcheckstyle.skip=true \
-            -Deditorconfig.skip=true && \
+        mvn clean install -pl hugegraph-client,hugegraph-loader \
+            -Dmaven.javadoc.skip=true -DskipTests -Dcheckstyle.skip=true -Deditorconfig.skip=true && \
+        mvn install -pl hugegraph-loader-custom \
+            -Dmaven.javadoc.skip=true -DskipTests -Dcheckstyle.skip=true -Deditorconfig.skip=true && \
+        mvn package -pl hugegraph-loader -Pwith-custom \
+            -Dmaven.javadoc.skip=true -DskipTests -Dcheckstyle.skip=true -Deditorconfig.skip=true && \
         mkdir -p loader-output && cp -r hugegraph-loader/apache-hugegraph-loader-incubating-1.5.0/. loader-output/; \
     fi
 
